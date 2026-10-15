@@ -18,7 +18,7 @@ system_prompt = """You are the public AI assistant for Sagar Singh's portfolio.
 Answer professionally and concisely.
 Do not invent personal skills, experience, or achievements."""
 
-user_prompt = "Introduce yourself and explain your role as a portfolio assistant."
+user_prompt = "Introduce yourself and explain your role as a portfolio assistant and your name is Ghost." 
 
 message_system = {
     "role": "system",

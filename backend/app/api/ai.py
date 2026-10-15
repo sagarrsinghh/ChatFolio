@@ -1,6 +1,7 @@
 
 import os
 import json
+from typing import Literal
 
 from dotenv import load_dotenv
 from groq import Groq
@@ -9,6 +10,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.core.portfolio_knowledge import portfolio_knowledge
+from app.core.ai_memory import AI_MEMORY_INSTRUCTIONS
 
 
 # Load environment variables
@@ -28,15 +30,24 @@ router = APIRouter()
 
 
 # Request and response models
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=4000)
+
+
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
+    history: list[ChatMessage] = Field(default_factory=list, max_length=10)
 
 
 class ChatResponse(BaseModel):
     answer: str
 
 
-def create_messages(user_message: str):
+def create_messages(
+    user_message: str,
+    history: list[ChatMessage] | None = None,
+):
     system_prompt = f"""
 You are the public AI portfolio assistant for Sagar Singh.
 
@@ -144,6 +155,20 @@ Avoid printing raw formatting markers unnecessarily.
 Be friendly, direct, professional and concise.
 """
 
+    # Append editable AI behaviour instructions (edit ai_memory.py to update).
+    system_prompt += "\n\n" + AI_MEMORY_INSTRUCTIONS
+
+    messages = [
+        {"role": "system", "content": system_prompt}
+    ]
+
+    # Include only recent conversation context.
+    for item in (history or [])[-10:]:
+        messages.append({
+            "role": item.role,
+            "content": item.content,
+        })
+
     user_prompt = f"""
 The user has asked:
 
@@ -153,17 +178,10 @@ Answer this specific question using the approved portfolio knowledge.
 Follow the response rules and provide a useful, natural answer.
 """
 
-    message_system = {
-        "role": "system",
-        "content": system_prompt
-    }
-
-    message_user = {
+    messages.append({
         "role": "user",
-        "content": user_prompt
-    }
-
-    messages = [message_system, message_user]
+        "content": user_prompt,
+    })
 
     return messages
 
@@ -179,7 +197,7 @@ def chat_with_ai(request: ChatRequest):
             detail="Message cannot be empty."
         )
 
-    messages = create_messages(user_message)
+    messages = create_messages(user_message, request.history)
 
     try:
         response = client.chat.completions.create(
@@ -213,7 +231,7 @@ def chat_with_ai_stream(request: ChatRequest):
             detail="Message cannot be empty."
         )
 
-    messages = create_messages(user_message)
+    messages = create_messages(user_message, request.history)
 
     def generate():
         try:

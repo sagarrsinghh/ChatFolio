@@ -64,13 +64,19 @@ export async function getPortfolio(): Promise<PortfolioProfile> {
   return response.json() as Promise<PortfolioProfile>;
 }
 
-export async function askPortfolioAI(message: string): Promise<string> {
+export type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export async function askPortfolioAI(
+  message: string,
+  history: ChatMessage[] = []
+): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/api/v1/ai/chat`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ message }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, history }),
   });
 
   if (!response.ok) {
@@ -78,13 +84,13 @@ export async function askPortfolioAI(message: string): Promise<string> {
   }
 
   const data = (await response.json()) as { answer: string };
-
   return data.answer;
 }
 
 export async function streamPortfolioAI(
   message: string,
-  onToken: (token: string) => void
+  onToken: (token: string) => void,
+  history: ChatMessage[] = []
 ): Promise<void> {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/ai/chat/stream`,
@@ -93,7 +99,7 @@ export async function streamPortfolioAI(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, history }),
     }
   );
 

@@ -30,6 +30,7 @@ import {
   matchResumeWithJDPdf,
   type PortfolioProfile,
   type JDMatchResult,
+  type ChatMessage,
 } from "./api";
 import "./App.css";
 function Github({ size = 19 }: { size?: number }) {
@@ -79,6 +80,7 @@ type DesktopApp = {
   title: string;
   subtitle: string;
   icon: typeof UserRound;
+  desktopIcon: string;
 };
 const apps: DesktopApp[] = [
   {
@@ -86,37 +88,62 @@ const apps: DesktopApp[] = [
     title: "About Me",
     subtitle: "Get to know me",
     icon: UserRound,
+    desktopIcon: "/icons/about.svg",
   },
   {
     id: "projects",
     title: "Projects",
     subtitle: "Things I've built",
     icon: FolderKanban,
+    desktopIcon: "/icons/folder.svg",
   },
   {
     id: "resume",
     title: "Resume",
     subtitle: "Experience & skills",
     icon: FileText,
+    desktopIcon: "/icons/pdf.svg",
   },
   {
     id: "ai",
     title: "AI Assistant",
     subtitle: "Ask about my work",
     icon: Bot,
+    desktopIcon: "/icons/ai-assistant.svg",
   },
   {
     id: "jd-matcher",
     title: "JD Matcher",
     subtitle: "Compare a job with my profile",
     icon: FileSearch,
+    desktopIcon: "/icons/jd-matcher.svg",
   },
   {
     id: "contact",
     title: "Contact",
     subtitle: "Let's connect",
     icon: Mail,
+    desktopIcon: "/icons/mail.svg",
   },
+];
+type DesktopShortcutItem = {
+  id: string;
+  title: string;
+  subtitle: string;
+  iconSrc: string;
+  appId?: AppId;
+  href?: string;
+};
+const desktopShortcuts: DesktopShortcutItem[] = [
+  { id: "about", title: "About Me", subtitle: "Get to know Sagar", iconSrc: "/icons/about.svg", appId: "about" },
+  { id: "projects", title: "Projects", subtitle: "Explore projects", iconSrc: "/icons/folder.svg", appId: "projects" },
+  { id: "resume", title: "Resume PDF", subtitle: "Open resume PDF", iconSrc: "/icons/pdf.svg", appId: "resume" },
+  { id: "portfolio", title: "Portfolio", subtitle: "Open portfolio overview", iconSrc: "/icons/portfolio.svg", appId: "about" },
+  { id: "ai", title: "AI Assistant", subtitle: "Ask Sagar's AI", iconSrc: "/icons/ai-assistant.svg", appId: "ai" },
+  { id: "jd-matcher", title: "JD Matcher", subtitle: "Match a job description", iconSrc: "/icons/jd-matcher.svg", appId: "jd-matcher" },
+  { id: "github", title: "GitHub", subtitle: "Open GitHub profile", iconSrc: "/icons/github.svg", href: "https://github.com/sagarrsinghh" },
+  { id: "linkedin", title: "LinkedIn", subtitle: "Open LinkedIn profile", iconSrc: "/icons/linkedin.svg", href: "https://www.linkedin.com/in/sagarrsingh/" },
+  { id: "email", title: "Email", subtitle: "Email Sagar", iconSrc: "/icons/mail.svg", href: "mailto:sagarrsinghh11@gmail.com" },
 ];
 function App() {
   const [openApps, setOpenApps] = useState<AppId[]>([]);
@@ -167,42 +194,62 @@ function App() {
   }, []);
   const sendChatMessage = async (message?: string) => {
     const question = (message ?? chatInput).trim();
+
     if (!question || chatLoading) return;
+
+    // Capture previous completed messages before adding the new question.
+    const history: ChatMessage[] = chatMessages
+      .filter((item) => item.content.trim().length > 0)
+      .slice(-10)
+      .map((item) => ({
+        role: item.role,
+        content: item.content,
+      }));
+
     setChatInput("");
     setChatError("");
     setChatLoading(true);
-    // Immediately show the recruiter's question and an empty AI response.
+
     setChatMessages((previous) => [
       ...previous,
       { role: "user", content: question },
       { role: "assistant", content: "" },
     ]);
+
     try {
-      await streamPortfolioAI(question, (token) => {
-        setChatMessages((previous) => {
-          const updated = [...previous];
-          const lastIndex = updated.length - 1;
-          if (
-            lastIndex >= 0 &&
-            updated[lastIndex].role === "assistant"
-          ) {
-            updated[lastIndex] = {
-              ...updated[lastIndex],
-              content: updated[lastIndex].content + token,
-            };
-          }
-          return updated;
-        });
-      });
+      await streamPortfolioAI(
+        question,
+        (token) => {
+          setChatMessages((previous) => {
+            const updated = [...previous];
+            const lastIndex = updated.length - 1;
+
+            if (
+              lastIndex >= 0 &&
+              updated[lastIndex].role === "assistant"
+            ) {
+              updated[lastIndex] = {
+                ...updated[lastIndex],
+                content: updated[lastIndex].content + token,
+              };
+            }
+
+            return updated;
+          });
+        },
+        history
+      );
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Something went wrong while contacting the AI.";
+
       setChatError(errorMessage);
-      // Avoid leaving an empty assistant message after a failure.
+
       setChatMessages((previous) => {
         const updated = [...previous];
+
         if (
           updated.length > 0 &&
           updated[updated.length - 1].role === "assistant" &&
@@ -210,6 +257,7 @@ function App() {
         ) {
           updated.pop();
         }
+
         return updated;
       });
     } finally {
@@ -826,49 +874,46 @@ function App() {
   return (
     <main className="desktop" onClick={() => startOpen && setStartOpen(false)}>
       <div className="desktop-shortcuts">
-        {apps.map((app) => {
-          const Icon = app.icon;
+        {desktopShortcuts.map((item) => {
+          const shortcutContent = (
+            <>
+              <span className="desktop-icon">
+                <img src={item.iconSrc} alt="" draggable={false} />
+              </span>
+              <span>{item.title}</span>
+            </>
+          );
+          if (item.href) {
+            return (
+              <a
+                className="desktop-shortcut"
+                key={item.id}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                title={item.subtitle}
+                onClick={(event) => event.stopPropagation()}
+              >
+                {shortcutContent}
+              </a>
+            );
+          }
           return (
             <button
               className="desktop-shortcut"
-              key={app.id}
+              key={item.id}
+              type="button"
+              title={item.subtitle}
               onClick={(event) => {
                 event.stopPropagation();
-                if (app.id === "resume") {
-                  window.open("/resume.pdf", "_blank");
-                  return;
-                }
-                openApp(app.id);
+                if (item.appId) openApp(item.appId);
               }}
-              onDoubleClick={() => {
-                if (app.id === "resume") {
-                  window.open("/resume.pdf", "_blank");
-                  return;
-                }
-                openApp(app.id);
-              }}
-              title={app.subtitle}
             >
-              <span className={`desktop-icon icon-${app.id}`}>
-                <Icon size={27} strokeWidth={1.7} />
-              </span>
-              <span>{app.title}</span>
+              {shortcutContent}
             </button>
           );
         })}
       </div>
-      <div className="desktop-welcome">
-        <p className="welcome-label">WELCOME TO MY DIGITAL SPACE</p>
-        <h1>Hey, I'm Sagar<span>.</span></h1>
-        <p>Software · Systems · AI</p>
-        <button
-          className="welcome-button"
-          onClick={() => openApp("about")}
-        >
-          Explore my portfolio <ArrowUpRight size={17} />
-        </button>
-      </div>
-
       {/* Floating AI Assistant: visible on first load, dismissible greeting, persistent launcher. */}
       <aside className="floating-ai" onClick={(event) => event.stopPropagation()} aria-label="AI portfolio assistant">
         {aiGreetingVisible && (
@@ -921,7 +966,6 @@ function App() {
       {openApps.map((id, index) => {
         const app = apps.find((item) => item.id === id);
         if (!app) return null;
-        const Icon = app.icon;
         const isActive = activeApp === id;
         return (
           <section
@@ -937,7 +981,7 @@ function App() {
           >
             <header className="window-titlebar">
               <div className="window-title">
-                <Icon size={17} />
+                <img className="window-app-icon" src={app.desktopIcon} alt="" draggable={false} />
                 <span>{app.title}</span>
               </div>
               <div className="window-controls">
@@ -987,11 +1031,10 @@ function App() {
           <div className="start-section-title">Pinned</div>
           <div className="start-app-grid">
             {visibleApps.map((app) => {
-              const Icon = app.icon;
               return (
                 <button key={app.id} onClick={() => openApp(app.id)}>
                   <span className={`start-app-icon icon-${app.id}`}>
-                    <Icon size={22} />
+                    <img src={app.desktopIcon} alt="" draggable={false} />
                   </span>
                   <span>{app.title}</span>
                 </button>
@@ -1027,9 +1070,7 @@ function App() {
               setStartOpen((current) => !current);
             }}
           >
-            <svg className="windows-logo" viewBox="0 0 24 24" width="25" height="25" aria-hidden="true">
-              <path d="M2 2h9v9H2zM13 2h9v9h-9zM2 13h9v9H2zM13 13h9v9h-9z" fill="currentColor" />
-            </svg>
+            <img className="windows-logo" src="/icons/windows.svg" alt="" draggable={false} />
           </button>
           <button
             className="taskbar-search"
@@ -1042,7 +1083,6 @@ function App() {
             <span>Search</span>
           </button>
           {apps.map((app) => {
-            const Icon = app.icon;
             return (
               <button
                 className={`taskbar-button ${openApps.includes(app.id) ? "taskbar-open" : ""} ${activeApp === app.id ? "taskbar-active" : ""}`}
@@ -1057,7 +1097,7 @@ function App() {
                   }
                 }}
               >
-                <Icon size={21} />
+                <img className="taskbar-app-icon" src={app.desktopIcon} alt="" draggable={false} />
               </button>
             );
           })}

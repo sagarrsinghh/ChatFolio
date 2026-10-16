@@ -11,6 +11,8 @@ class Settings(BaseSettings):
         "http://localhost:5174",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
+        "https://*.vercel.app",
+        "*"
     ]
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"

@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="3" y="3" width="58" height="58" rx="13" fill="#fff"/><rect x="10" y="17" width="44" height="31" rx="5" fill="#eaf4ff" stroke="#a5c9f4" stroke-width="2"/><path d="m12 21 20 15 20-15" fill="none" stroke="#1677e8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="m12 44 13-12M52 44 39 32" fill="none" stroke="#6cb3f8" stroke-width="3"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <path fill="#4caf50" d="M45,16.2l-5,2.75l-5,4.75L35,40h7c1.657,0,3-1.343,3-3V16.2z"/>
+  <path fill="#1e88e5" d="M3,16.2l3.614,1.71L13,23.7V40H6c-1.657,0-3-1.343-3-3V16.2z"/>
+  <polygon fill="#e53935" points="35,11.2 24,19.45 13,11.2 12,17 13,23.7 24,31.95 35,23.7 36,17"/>
+  <path fill="#c62828" d="M3,12.298V16.2l10,7.5V11.2L9.876,8.859C8.132,7.553,5.644,8.025,4.474,9.882 C3.535,11.372,3,11.833,3,12.298z"/>
+  <path fill="#fbc02d" d="M45,12.298V16.2l-10,7.5V11.2l3.124-2.341c1.744-1.307,4.232-0.835,5.402,1.022 C44.465,11.372,45,11.833,45,12.298z"/>
+</svg>

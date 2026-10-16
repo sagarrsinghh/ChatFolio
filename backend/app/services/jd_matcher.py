@@ -87,6 +87,8 @@ resume = Resume(
         "Client-Server Architecture",
         "Problem Solving",
         "Agile",
+        "AI",
+        "LLM",
         "OpenAI API",
         "Claude API",
         "Generative AI",

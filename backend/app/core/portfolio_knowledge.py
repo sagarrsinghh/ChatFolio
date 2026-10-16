@@ -26,10 +26,8 @@ Institution: JECRC University, Jaipur.
 Degree: B.Tech in Computer Science and Engineering.
 Degree period listed: 2022-2026.
 CGPA: 7.9.
-Current status: Academic requirements completed; formal degree certificate
-is pending issuance.
+Current status: Academic requirements completed
 Strongest interview area: NestJS and backend development.
-Python: Currently at a learning stage.
 Career goal: Continue developing software engineering skills and build
 deeper practical expertise in AI and LLM-based applications.
 
@@ -44,13 +42,10 @@ Project-level experience is reported in:
 - JWT authentication and role-based access control
 - LLM APIs and prompt engineering
 
-Other resume-listed technologies include:
-Java, C++, Python, Flask, HTML, CSS, Docker, Git, GitHub, Postman
+Other technical skills, languages and tools:
+Python, Flask, Java, C++, HTML, CSS, Docker, Git, GitHub, Postman
 and Swagger.
 
-Do not assume equal proficiency in all listed technologies.
-Python is currently being learned; do not describe Sagar as an
-experienced production Python engineer based on this knowledge alone.
 
 3. INTERNSHIP: SMART DATA CENTER MONITORING PLATFORM
 
